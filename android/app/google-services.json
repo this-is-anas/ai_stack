@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "752703653543",
+    "project_id": "aihub-790af",
+    "storage_bucket": "aihub-790af.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:752703653543:android:6e7df3cdc676f1485bbd82",
+        "android_client_info": {
+          "package_name": "com.example.ai_hub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_WfN2BaTATZnXpxiVjZqpX_QEOZNna3o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
