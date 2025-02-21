@@ -1,3 +1,4 @@
+import 'package:ai_hub/pages/prompt/prompt_generator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -59,7 +60,7 @@ class LoginPage extends StatelessWidget {
             onRecoverPassword: _recoverPassword,
             onSubmitAnimationCompleted: () {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const HomePage()),
+                MaterialPageRoute(builder: (context) =>  HomePage()),
               );
             },
             theme: LoginTheme(
@@ -110,7 +111,7 @@ class LoginPage extends StatelessWidget {
 
                     // Navigate to HomePage on success
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => const HomePage()),
+                      MaterialPageRoute(builder: (context) =>  HomePage()),
                     );
                   } catch (e) {
                     // Show a SnackBar for any errors during sign-in
