@@ -42,33 +42,42 @@ class _PromptGeneratorPageState extends State<PromptGeneratorPage> {
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.primary.withOpacity(0.1),
-              colors.secondary.withOpacity(0.1),
-              Colors.white,
-            ],
+      body: SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colors.primary.withOpacity(0.1),
+                colors.secondary.withOpacity(0.1),
+                Colors.white,
+              ],
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: ListView(
-            physics: const BouncingScrollPhysics(),
-            children: [
-              const SizedBox(height: 40),
-              _buildInputSection(theme),
-              const SizedBox(height: 32),
-              _buildActionButton(theme),
-              const SizedBox(height: 24),
-              _buildExamplesSection(),
-              SizedBox(
-                height: MediaQuery.of(context).viewInsets.bottom + 20,
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        _buildInputSection(theme),
+                        const SizedBox(height: 32),
+                        _buildActionButton(theme),
+                        const SizedBox(height: 24),
+                        _buildExamplesSection(),
+                      ],
+                    ),
+                  ),
+                ),
+                // Add space for keyboard/nav bar
+                SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+              ],
+            ),
           ),
         ),
       ),
