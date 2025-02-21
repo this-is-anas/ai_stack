@@ -1,5 +1,7 @@
+import 'package:ai_hub/pages/services/ai_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PromptGeneratorPage extends StatefulWidget {
   const PromptGeneratorPage({super.key});
@@ -12,6 +14,8 @@ class _PromptGeneratorPageState extends State<PromptGeneratorPage> {
   final TextEditingController _ideaController = TextEditingController();
   final int _maxChars = 500;
   bool _isGenerating = false;
+  final AIService _aiService = AIService();
+  String _generatedPrompt = '';
 
   @override
   void dispose() {
@@ -19,15 +23,74 @@ class _PromptGeneratorPageState extends State<PromptGeneratorPage> {
     super.dispose();
   }
 
-  void _generatePrompt() {
+  void _generatePrompt() async {
+    if (_ideaController.text.isEmpty) return;
+
     setState(() => _isGenerating = true);
-    // Simulate generation delay
-    Future.delayed(const Duration(seconds: 2), () {
+
+    try {
+      final generated = await _aiService.generatePrompt(_ideaController.text);
+      setState(() {
+        _generatedPrompt = generated ?? 'Failed to generate prompt';
+        _isGenerating = false;
+      });
+
+      if (generated != null && !generated.contains('Error')) {
+        _showResultDialog(generated);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(generated ?? 'Generation failed')),
+        );
+      }
+    } catch (e) {
       setState(() => _isGenerating = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Awesome prompt generated!')),
+        const SnackBar(content: Text('Connection error. Check your internet.')),
       );
-    });
+    }
+  }
+
+  void _showResultDialog(String prompt) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Generated Prompt'),
+        content: SingleChildScrollView(child: Text(prompt)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+          TextButton(
+            onPressed: () => _savePrompt(prompt),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _savePrompt(String prompt) async {
+    try {
+      // Implement your save logic here (Firestore, Local DB, etc.)
+      // Example using SharedPreferences:
+      final prefs = await SharedPreferences.getInstance();
+      final savedPrompts = prefs.getStringList('saved_prompts') ?? [];
+      savedPrompts.add(prompt);
+      await prefs.setStringList('saved_prompts', savedPrompts);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Prompt saved successfully!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to save prompt')),
+        );
+      }
+    }
   }
 
   @override

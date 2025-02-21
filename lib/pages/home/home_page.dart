@@ -79,4 +79,3 @@ class _HomePageState extends State<HomePage> {
     }
   }
 }
-// Keep existing HomeContent and PlaceholderPage classes
