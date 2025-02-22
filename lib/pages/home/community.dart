@@ -1,8 +1,10 @@
+import 'package:ai_hub/pages/model/post.dart';
 import 'package:ai_hub/pages/services/community_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:ai_hub/components/post_card.dart';
 
 class Community extends StatefulWidget {
   const Community({super.key});
@@ -46,7 +48,7 @@ class _CommunityState extends State<Community> {
           ),
         ),
         child: StreamBuilder<QuerySnapshot>(
-          stream: _communityService.getPostsStream(),
+          stream: _communityService.getPosts(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
@@ -56,13 +58,20 @@ class _CommunityState extends State<Community> {
               return const Center(child: CircularProgressIndicator());
             }
 
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(child: Text('No posts yet!'));
+            }
+
+            final posts = snapshot.data!.docs
+                .map((doc) => CommunityPost.fromFirestore(doc))
+                .toList();
+
             return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: snapshot.data!.docs.length + 1,
+              padding: const EdgeInsets.all(8),
+              itemCount: posts.length,
               itemBuilder: (context, index) {
-                if (index == 0) return _buildComposeCard(colors);
-                final post = snapshot.data!.docs[index - 1];
-                return _buildPostCard(post, colors);
+                final post = posts[index];
+                return PostCard(post: post);
               },
             );
           },

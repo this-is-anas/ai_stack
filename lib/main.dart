@@ -1,15 +1,24 @@
 import 'package:ai_hub/pages/login/auth_page.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
+
 import 'firebase_options.dart';
 
-void main() async{
-
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Add this test call
+  FirebaseFunctions.instanceFor(region: 'your-region')
+      .httpsCallable('testFunction')
+      .call()
+      .then((_) => print('Firebase Functions working!'))
+      .catchError((e) => print('Error: $e'));
+
   runApp(const MyApp());
 }
 
@@ -24,4 +33,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

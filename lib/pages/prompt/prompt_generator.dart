@@ -1,7 +1,10 @@
 import 'package:ai_hub/pages/services/ai_service.dart';
+import 'package:ai_hub/pages/services/gemini_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class PromptGeneratorPage extends StatefulWidget {
   const PromptGeneratorPage({super.key});
@@ -15,7 +18,9 @@ class _PromptGeneratorPageState extends State<PromptGeneratorPage> {
   final int _maxChars = 500;
   bool _isGenerating = false;
   final AIService _aiService = AIService();
+  final GeminiService _geminiService = GeminiService();
   String _generatedPrompt = '';
+  final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
   @override
   void dispose() {
@@ -23,30 +28,25 @@ class _PromptGeneratorPageState extends State<PromptGeneratorPage> {
     super.dispose();
   }
 
-  void _generatePrompt() async {
+  Future<void> _generatePrompt() async {
     if (_ideaController.text.isEmpty) return;
 
     setState(() => _isGenerating = true);
 
     try {
-      final generated = await _aiService.generatePrompt(_ideaController.text);
-      setState(() {
-        _generatedPrompt = generated ?? 'Failed to generate prompt';
-        _isGenerating = false;
-      });
-
-      if (generated != null && !generated.contains('Error')) {
-        _showResultDialog(generated);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(generated ?? 'Generation failed')),
-        );
-      }
-    } catch (e) {
-      setState(() => _isGenerating = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Connection error. Check your internet.')),
+      final callable = _functions.httpsCallable('generatePrompt');
+      final response = await callable.call(
+        <String, dynamic>{'prompt': _ideaController.text},
       );
+      final generatedPrompt = response.data['prompt'] as String;
+
+      setState(() => _generatedPrompt = generatedPrompt);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() => _isGenerating = false);
     }
   }
 
@@ -143,6 +143,12 @@ class _PromptGeneratorPageState extends State<PromptGeneratorPage> {
             ),
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _isGenerating ? null : _generatePrompt,
+        child: _isGenerating
+            ? const CircularProgressIndicator()
+            : const Icon(Icons.auto_awesome),
       ),
     );
   }

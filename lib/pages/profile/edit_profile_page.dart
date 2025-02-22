@@ -16,7 +16,6 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _emailController;
-  late TextEditingController _jobPreferencesController;
   late TextEditingController _nameController;
   late TextEditingController _bioController;
   String? _resumePath;
@@ -33,7 +32,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void initState() {
     super.initState();
     _emailController = TextEditingController();
-    _jobPreferencesController = TextEditingController();
     _nameController = TextEditingController();
     _bioController = TextEditingController();
     _loadUserData();
@@ -43,7 +41,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void dispose() {
     _emailController.dispose();
-    _jobPreferencesController.dispose();
     _nameController.dispose();
     _bioController.dispose();
     super.dispose();
@@ -59,8 +56,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
         final data = docSnapshot.data()!;
         setState(() {
           _emailController.text = data['email'] ?? '';
-          _jobPreferencesController.text = data['jobPreferences'] ?? '';
           _nameController.text = data['name'] ?? '';
+          _bioController.text = data['bio'] ?? '';
           _resumeFileName = data['resumeFileName'];
           _resumeUrl = data['resumeUrl'];
         });

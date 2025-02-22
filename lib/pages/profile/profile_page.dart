@@ -20,7 +20,6 @@ class _ProfilePageState extends State<ProfilePage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? _name = "John Doe";
   String? _email;
-  String? _jobPreferences;
   File? _profileImage;
   String? _bio;
 
@@ -42,7 +41,7 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           _name = data['name'] ?? 'John Doe';
           _email = data['email'] ?? '';
-          _jobPreferences = data['jobPreferences'] ?? '';
+          _bio = data['bio'] ?? '';
         });
       }
     } catch (e) {
@@ -75,7 +74,7 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _name = updatedData['name'];
         _email = updatedData['email'];
-        _jobPreferences = updatedData['jobPreferences'];
+        _bio = updatedData['bio'];
       });
     }
     _loadLocalImage();
@@ -105,27 +104,27 @@ class _ProfilePageState extends State<ProfilePage> {
         elevation: 0,
       ),
       extendBodyBehindAppBar: true,
-      body: SingleChildScrollView(
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colors.primary.withOpacity(0.1),
-                colors.secondary.withOpacity(0.1),
-                Colors.white,
-              ],
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colors.primary.withOpacity(0.1),
+              colors.secondary.withOpacity(0.1),
+              Colors.white,
+            ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: SingleChildScrollView(
             child: Column(
               children: [
                 const SizedBox(height: 80),
-                _buildProfileHeader(theme),
+                _buildProfileAvatar(theme),
                 const SizedBox(height: 32),
-                _buildProfileCard(theme),
+                _buildProfileInfoCard(theme),
                 const SizedBox(height: 24),
                 _buildActionButtons(theme),
               ],
@@ -136,7 +135,30 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileHeader(ThemeData theme) {
+  Widget _buildProfileAvatar(ThemeData theme) {
+    return Center(
+      child: CircleAvatar(
+        radius: 50,
+        backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+        child: _profileImage != null
+            ? Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                    image: FileImage(_profileImage!),
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                  ),
+                ),
+              )
+            : Icon(Icons.person, size: 40, color: theme.colorScheme.primary),
+      ),
+    );
+  }
+
+  Widget _buildProfileInfoCard(ThemeData theme) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -147,50 +169,42 @@ class _ProfilePageState extends State<ProfilePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            CircleAvatar(
-              radius: 40,
-              backgroundImage: _profileImage != null
-                  ? FileImage(_profileImage!)
-                  : const AssetImage('lib/assets/images/google.png')
-                      as ImageProvider,
-            ),
-            const SizedBox(height: 16),
-            Text(_name ?? 'Guest User',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.primary,
-                )),
-            Text(_email ?? 'no-email@example.com',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
-                )),
+            _buildProfileInfoRow(Icons.person, 'Name', _name ?? 'Guest User'),
+            const Divider(),
+            _buildProfileInfoRow(
+                Icons.email, 'Email', _email ?? 'no-email@example.com'),
+            const Divider(),
+            _buildProfileInfoRow(Icons.info, 'Bio', _bio ?? 'No bio added yet'),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProfileCard(ThemeData theme) {
-  return Card(
-    elevation: 4,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
-      side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.1)),
-    ),
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
+  Widget _buildProfileInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow(Icons.info, 'Bio', _bio ?? 'No bio added yet'),
-          const Divider(),
-          _buildInfoRow(Icons.location_on, 'Location', 'New York, USA'),
-          const Divider(),
-          _buildInfoRow(Icons.calendar_today, 'Member Since', '2023'),
+          Icon(icon, color: Colors.grey[600], size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: GoogleFonts.poppins(
+                        fontSize: 14, color: Colors.grey[600])),
+                const SizedBox(height: 4),
+                Text(value, style: GoogleFonts.poppins(fontSize: 16)),
+              ],
+            ),
+          ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildActionButtons(ThemeData theme) {
     return Column(
@@ -210,15 +224,6 @@ class _ProfilePageState extends State<ProfilePage> {
           color: Colors.red,
         ),
       ],
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String title, String value) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.grey[600]),
-      title: Text(title,
-          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey)),
-      subtitle: Text(value, style: GoogleFonts.poppins(fontSize: 16)),
     );
   }
 

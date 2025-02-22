@@ -22,7 +22,7 @@ class CommunityService {
   }
 
   // Get real-time stream of posts
-  Stream<QuerySnapshot> getPostsStream() {
+  Stream<QuerySnapshot> getPosts() {
     return _firestore
         .collection('posts')
         .orderBy('timestamp', descending: true)
