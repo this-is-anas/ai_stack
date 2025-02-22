@@ -1,7 +1,7 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 
 class GeminiService {
-  static const String _apiKey = 'AIzaSyD0QO9WiYkQMd3_SnU5MFqP9PWY9lQ2_R4';
+  static const String _apiKey = 'YOUR-API-KEY';
   static const String _promptTemplate = """
 You are a professional prompt engineering assistant. Generate a highly optimized AI system prompt based on these guidelines:
 
