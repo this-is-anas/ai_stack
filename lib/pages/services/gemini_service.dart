@@ -1,24 +1,17 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 
 class GeminiService {
-  static const String _apiKey = 'YOUR-API-KEY';
+  static const String _apiKey = 'AIzaSyD0QO9WiYkQMd3_SnU5MFqP9PWY9lQ2_R4';
   static const String _promptTemplate = """
-  [ROLE]
-  You are a professional prompt engineering assistant. 
-  
-  [TASK]
-  Generate a highly optimized AI system prompt based on the user's input.
-  - For story/narrative requests: Include characters, plot points, and genre
-  - For image generation: Specify style, composition, and medium
-  - Technical specs: Keep under 500 characters
-  
-  [INPUT]
-  {USER_INPUT}
-  
-  [OUTPUT FORMAT]
-  <Type: Story|Image>
-  <Prompt>
-  """;
+You are a professional prompt engineering assistant. Generate a highly optimized AI system prompt based on these guidelines:
+
+1. First line must specify type: "Type: Story" or "Type: Image"
+2. Second line must start with "Prompt: "
+3. No special characters or markdown
+4. Keep under 500 characters
+
+User Input: {USER_INPUT}
+""";
 
   Future<String?> generateTailoredPrompt(String userInput) async {
     try {
@@ -38,7 +31,7 @@ class GeminiService {
         Content.text(fullPrompt),
       ]);
 
-      return response.text;
+      return response.text?.replaceAll(RegExp(r'[<>]'), '').trim();
     } catch (e) {
       print('Gemini API Error: $e');
       return null;

@@ -51,21 +51,97 @@ class _PromptGeneratorPageState extends State<PromptGeneratorPage> {
   }
 
   void _showResultDialog(String prompt) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Generated Prompt'),
-        content: SingleChildScrollView(child: Text(prompt)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.colorScheme.primary.withOpacity(0.1),
+                theme.colorScheme.secondary.withOpacity(0.1),
+                Colors.white,
+              ],
+            ),
           ),
-          TextButton(
-            onPressed: () => _savePrompt(prompt),
-            child: const Text('Save'),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Generated Prompt',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 20,
+                      color: theme.colorScheme.primary,
+                    )),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    prompt,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      height: 1.5,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Close',
+                          style: GoogleFonts.poppins(
+                            color: theme.colorScheme.secondary,
+                            fontWeight: FontWeight.w500,
+                          )),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            theme.colorScheme.primary,
+                            theme.colorScheme.secondary,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TextButton(
+                        onPressed: () => _savePrompt(prompt),
+                        child: Text('Save',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            )),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -165,35 +241,38 @@ class _PromptGeneratorPageState extends State<PromptGeneratorPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Describe Your Idea',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.primary,
-                )),
-            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  Icons.auto_awesome_rounded,
+                  color: theme.colorScheme.secondary,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Text('Prompt Generator',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18,
+                      color: theme.colorScheme.primary,
+                    )),
+              ],
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: _inputController,
               maxLines: 5,
               maxLength: 500,
               decoration: InputDecoration(
-                hintText:
-                    'e.g. "A futuristic city where AI controls weather..."',
+                hintText: 'Describe your creative idea here...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
                 fillColor: theme.colorScheme.primary.withOpacity(0.05),
-                prefixIcon: const Icon(Icons.lightbulb_outline),
                 contentPadding: const EdgeInsets.all(16),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${_inputController.text.length}/500',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
-              ),
+              style: GoogleFonts.poppins(),
             ),
           ],
         ),
@@ -253,12 +332,15 @@ class _PromptGeneratorPageState extends State<PromptGeneratorPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Example Prompts',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-              color: Colors.grey[600],
-            )),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Text('Try These Ideas:',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                color: Colors.grey[600],
+              )),
+        ),
         const SizedBox(height: 12),
         ListView(
           shrinkWrap: true,
