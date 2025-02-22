@@ -15,8 +15,9 @@ class Community extends StatefulWidget {
 
 class _CommunityState extends State<Community> {
   final CommunityService _communityService = CommunityService();
-  final TextEditingController _postController = TextEditingController();
+
   final User? _currentUser = FirebaseAuth.instance.currentUser;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -24,16 +25,13 @@ class _CommunityState extends State<Community> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Community',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: colors.primary),
-            onPressed: () {},
-          ),
-        ],
+        title: Text('Community Feed'),
+        centerTitle: true,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showComposeDialog(context),
+        child: Icon(Icons.edit),
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -80,182 +78,161 @@ class _CommunityState extends State<Community> {
     );
   }
 
-  Widget _buildComposeCard(ColorScheme colors) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: colors.primary.withOpacity(0.1)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                const CircleAvatar(
-                  radius: 20,
-                  backgroundImage: AssetImage('lib/assets/images/google.png'),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _postController,
-                    maxLines: null,
-                    decoration: InputDecoration(
-                      hintText: 'Start a discussion...',
-                      border: InputBorder.none,
-                      hintStyle:
-                          TextStyle(color: colors.onSurface.withOpacity(0.4)),
-                    ),
+  // Widget _buildComposeCard(ColorScheme colors) {
+  //   return Card(
+  //     elevation: 2,
+  //     shape: RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.circular(20),
+  //       side: BorderSide(color: colors.primary.withOpacity(0.1)),
+  //     ),
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(16),
+  //       child: Column(
+  //         children: [
+  //           Row(
+  //             children: [
+  //               const CircleAvatar(
+  //                 radius: 20,
+  //                 backgroundImage: AssetImage('lib/assets/images/google.png'),
+  //               ),
+  //               const SizedBox(width: 12),
+  //               Expanded(
+  //                 child: TextField(
+  //                   controller: _postController,
+  //                   maxLines: null,
+  //                   decoration: InputDecoration(
+  //                     hintText: 'Start a discussion...',
+  //                     border: InputBorder.none,
+  //                     hintStyle:
+  //                         TextStyle(color: colors.onSurface.withOpacity(0.4)),
+  //                   ),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //           const SizedBox(height: 12),
+  //           Align(
+  //             alignment: Alignment.centerRight,
+  //             child: Container(
+  //               decoration: BoxDecoration(
+  //                 gradient: LinearGradient(
+  //                   colors: [colors.primary, colors.secondary],
+  //                 ),
+  //                 borderRadius: BorderRadius.circular(16),
+  //               ),
+  //               child: TextButton(
+  //                 onPressed: () => _createPost(_postController.text),
+  //                 style: TextButton.styleFrom(
+  //                   padding: const EdgeInsets.symmetric(
+  //                       horizontal: 24, vertical: 12),
+  //                 ),
+  //                 child: Text(
+  //                   'Post',
+  //                   style: GoogleFonts.poppins(
+  //                     color: Colors.white,
+  //                     fontWeight: FontWeight.w600,
+  //                   ),
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _createPost(String content) {
+    if (content.isEmpty || !mounted) return;
+    final userId = _currentUser?.uid;
+    if (userId == null) return;
+
+    _firestore.collection('users').doc(userId).get().then((userDoc) {
+      // Handle missing user document case
+      final userData = userDoc.data() ?? {};
+
+      _communityService.createPost(
+        content: content,
+        userId: userId,
+        userName: userData['name'] ?? _currentUser?.displayName ?? 'Anonymous',
+        userImagePath: userData['profileImage'] ?? 'default_avatar.png',
+      );
+    }).catchError((error) {
+      print('Error creating post: $error');
+    });
+  }
+
+  void _showComposeDialog(BuildContext context) {
+    final TextEditingController _controller = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundImage: _currentUser?.photoURL != null
+                        ? NetworkImage(_currentUser!.photoURL!)
+                        : null,
+                    child: _currentUser?.photoURL == null
+                        ? Icon(Icons.person)
+                        : null,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [colors.primary, colors.secondary],
+                  SizedBox(width: 12),
+                  Text(
+                    _currentUser?.displayName ?? 'Anonymous',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                ],
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: _controller,
+                maxLines: 5,
+                decoration: InputDecoration(
+                  hintText: "What's happening?",
+                  border: InputBorder.none,
                 ),
-                child: TextButton(
-                  onPressed: () => _createPost(),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                  ),
-                  child: Text(
-                    'Post',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+              ),
+              SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_controller.text.isNotEmpty) {
+                      _createPost(_controller.text);
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Text('Post'),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPostCard(DocumentSnapshot post, ColorScheme colors) {
-    final data = post.data() as Map<String, dynamic>;
-    final likedBy = List<String>.from(data['likedBy'] ?? []);
-    final isLiked = likedBy.contains(_currentUser?.uid);
-
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: colors.primary.withOpacity(0.1)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const CircleAvatar(
-                  radius: 20,
-                  backgroundImage: AssetImage('lib/assets/images/google.png'),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('AI Enthusiast',
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600, fontSize: 14)),
-                    Text('@ai_user · 2h',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: colors.onSurface.withOpacity(0.5))),
-                  ],
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: Icon(Icons.more_vert,
-                      color: colors.onSurface.withOpacity(0.4)),
-                  onPressed: () {},
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Just discovered an amazing new framework for machine learning model deployment! 🚀 What\'s your favorite tool for ML ops?',
-              style: GoogleFonts.poppins(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    isLiked ? Icons.favorite : Icons.favorite_border,
-                    color: isLiked
-                        ? Colors.red
-                        : colors.onSurface.withOpacity(0.4),
-                  ),
-                  onPressed: () {
-                    if (!mounted || _currentUser == null) return;
-                    _communityService
-                        .toggleLike(post.id, _currentUser!.uid)
-                        .catchError((error) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to like: $error')),
-                        );
-                      }
-                    });
-                  },
-                ),
-                Text('${data['likes']}',
-                    style: TextStyle(color: colors.onSurface.withOpacity(0.6))),
-                const SizedBox(width: 20),
-                IconButton(
-                  icon: Icon(Icons.comment_outlined,
-                      color: colors.onSurface.withOpacity(0.4)),
-                  onPressed: () {},
-                ),
-                Text('12',
-                    style: TextStyle(color: colors.onSurface.withOpacity(0.6))),
-                const SizedBox(width: 20),
-                Icon(Icons.share_outlined,
-                    color: colors.onSurface.withOpacity(0.4)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _postController.dispose();
-    super.dispose();
-  }
-
-  void _createPost() {
-    if (_postController.text.isEmpty || !mounted) return;
-
-    _communityService.createPost(_postController.text).then((_) {
-      if (mounted) {
-        _postController.clear();
-      }
-    }).catchError((error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to post: $error')),
+            ],
+          ),
         );
-      }
-    });
+      },
+    );
   }
 }

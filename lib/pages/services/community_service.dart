@@ -6,18 +6,20 @@ class CommunityService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Create a new post
-  Future<void> createPost(String content) async {
-    print('Creating post for user: ${_auth.currentUser?.uid}');
-    final user = _auth.currentUser;
-    if (user == null) throw Exception('User not authenticated');
-
+  Future<void> createPost({
+    required String content,
+    required String userId,
+    required String userName,
+    required String userImagePath,
+  }) async {
     await _firestore.collection('posts').add({
-      'userId': user.uid,
       'content': content,
+      'authorId': userId,
+      'authorName': userName,
+      'authorImage': userImagePath,
       'likes': 0,
-      'comments': 0,
-      'timestamp': FieldValue.serverTimestamp(),
       'likedBy': [],
+      'timestamp': FieldValue.serverTimestamp(),
     });
   }
 

@@ -1,19 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-
 class CommunityPost {
   final String id;
-  final String title;
   final String content;
-  final String author;
+  final String authorId;
+  final String authorName;
+  final String? authorImage;
+  final int likes;
+  final List<String> likedBy;
   final DateTime timestamp;
 
   CommunityPost({
     required this.id,
-    required this.title,
     required this.content,
-    required this.author,
+    required this.authorId,
+    required this.authorName,
+    this.authorImage,
+    required this.likes,
+    required this.likedBy,
     required this.timestamp,
   });
 
@@ -21,9 +26,12 @@ class CommunityPost {
     Map data = doc.data() as Map;
     return CommunityPost(
       id: doc.id,
-      title: data['title'] ?? '',
       content: data['content'] ?? '',
-      author: data['author'] ?? 'Anonymous',
+      authorId: data['authorId'] ?? '',
+      authorName: data['authorName'] ?? 'Anonymous',
+      authorImage: data['authorImage'],
+      likes: data['likes'] ?? 0,
+      likedBy: List<String>.from(data['likedBy'] ?? []),
       timestamp: data['timestamp']?.toDate() ?? DateTime.now(),
     );
   }

@@ -1,6 +1,9 @@
 import 'package:ai_hub/pages/model/post.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:google_fonts/google_fonts.dart';
 
 class PostCard extends StatelessWidget {
   final CommunityPost post;
@@ -16,25 +19,74 @@ class PostCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(post.title,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                )),
-            SizedBox(height: 8),
-            Text(post.content),
-            SizedBox(height: 8),
             Row(
               children: [
-                Text(post.author, style: TextStyle(color: Colors.grey)),
+                _buildAuthorImage(post.authorImage),
+                SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(post.authorName,
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600, fontSize: 14)),
+                    Text(DateFormat('MMM dd, HH:mm').format(post.timestamp),
+                        style:
+                            TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  ],
+                ),
                 Spacer(),
-                Text(DateFormat('MMM dd, yyyy').format(post.timestamp),
-                    style: TextStyle(color: Colors.grey)),
               ],
             ),
+            SizedBox(height: 12),
+            Text(post.content,
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                )),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildAuthorImage(String? imagePath) {
+    return FutureBuilder<ImageProvider>(
+      future: _getAuthorImage(imagePath),
+      builder: (context, snapshot) {
+        return CircleAvatar(
+          radius: 20,
+          backgroundColor:
+              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          child: snapshot.hasData && snapshot.data is! AssetImage
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image(image: snapshot.data!),
+                )
+              : Icon(
+                  Icons.person,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+        );
+      },
+    );
+  }
+
+  Future<ImageProvider> _getAuthorImage(String? imagePath) async {
+    if (imagePath == null) {
+      return const AssetImage('lib/assets/images/transparent.png');
+    }
+
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/$imagePath');
+      if (await file.exists()) {
+        return FileImage(file);
+      }
+    } catch (e) {
+      print('Error loading author image: $e');
+    }
+
+    return const AssetImage('lib/assets/images/transparent.png');
   }
 }

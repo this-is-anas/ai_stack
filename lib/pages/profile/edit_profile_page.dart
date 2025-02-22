@@ -173,24 +173,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
         if (userId.isEmpty) {
           throw 'User not logged in';
         }
-        final userRef = _firestore.collection('users').doc(userId);
-        final docSnapshot = await userRef.get();
-        if (!docSnapshot.exists) {
-          await userRef.set({
-            'email': _emailController.text,
-            'name': _nameController.text,
-            'bio': _bioController.text,
-            'createdAt': FieldValue.serverTimestamp(),
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-        } else {
-          await userRef.update({
-            'email': _emailController.text,
-            'name': _nameController.text,
-            'bio': _bioController.text,
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-        }
+        await _firestore.collection('users').doc(userId).set({
+          'name': _nameController.text,
+          'email': _emailController.text,
+          'bio': _bioController.text,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
