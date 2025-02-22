@@ -49,44 +49,14 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAuthorImage(String? imagePath) {
-    return FutureBuilder<ImageProvider>(
-      future: _getAuthorImage(imagePath),
-      builder: (context, snapshot) {
-        return CircleAvatar(
-          radius: 20,
-          backgroundColor:
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
-          child: snapshot.hasData && snapshot.data is! AssetImage
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image(image: snapshot.data!),
-                )
-              : Icon(
-                  Icons.person,
-                  size: 24,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-        );
-      },
+  Widget _buildAuthorImage(String? imageUrl) {
+    return CircleAvatar(
+      radius: 20,
+      backgroundImage: imageUrl != null
+          ? NetworkImage(imageUrl)
+          : const NetworkImage(
+              'https://opboempdoytuyavetqko.supabase.co/storage/v1/object/public/avatars/default_avatar.png'),
+      child: imageUrl == null ? Icon(Icons.person) : null,
     );
-  }
-
-  Future<ImageProvider> _getAuthorImage(String? imagePath) async {
-    if (imagePath == null) {
-      return const AssetImage('lib/assets/images/transparent.png');
-    }
-
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/$imagePath');
-      if (await file.exists()) {
-        return FileImage(file);
-      }
-    } catch (e) {
-      print('Error loading author image: $e');
-    }
-
-    return const AssetImage('lib/assets/images/transparent.png');
   }
 }

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class NewsService {
-  static const String _apiKey = '35e5b544d39749f8871c77cdd0268c37';
+  static const String _apiKey = 'YOUR-API-KEY';
   static const String _apiUrl =
       'https://newsapi.org/v2/top-headlines?category=technology&pageSize=20';
 

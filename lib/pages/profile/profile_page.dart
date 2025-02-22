@@ -20,14 +20,13 @@ class _ProfilePageState extends State<ProfilePage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? _name = "John Doe";
   String? _email;
-  File? _profileImage;
+  String? _profileImageUrl;
   String? _bio;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
-    _loadLocalImage();
   }
 
   Future _loadUserData() async {
@@ -42,26 +41,11 @@ class _ProfilePageState extends State<ProfilePage> {
           _name = data['name'] ?? 'John Doe';
           _email = data['email'] ?? '';
           _bio = data['bio'] ?? '';
+          _profileImageUrl = data['profileImage'];
         });
       }
     } catch (e) {
       print('Error loading user data: $e');
-    }
-  }
-
-  Future _loadLocalImage() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final userId = _auth.currentUser?.uid ?? '';
-      final path = '${directory.path}/profile_$userId.jpg';
-      final file = File(path);
-      if (await file.exists()) {
-        setState(() {
-          _profileImage = file;
-        });
-      }
-    } catch (e) {
-      print('Error loading local image: $e');
     }
   }
 
@@ -77,7 +61,6 @@ class _ProfilePageState extends State<ProfilePage> {
         _bio = updatedData['bio'];
       });
     }
-    _loadLocalImage();
   }
 
   Future _logout() async {
@@ -139,21 +122,8 @@ class _ProfilePageState extends State<ProfilePage> {
     return Center(
       child: CircleAvatar(
         radius: 50,
-        backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-        child: _profileImage != null
-            ? Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: FileImage(_profileImage!),
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
-                  ),
-                ),
-              )
-            : Icon(Icons.person, size: 40, color: theme.colorScheme.primary),
+        backgroundImage: NetworkImage(_profileImageUrl ??
+            'https://opboempdoytuyavetqko.supabase.co/storage/v1/object/public/avatars/default_avatar.png'),
       ),
     );
   }

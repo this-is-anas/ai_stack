@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase/supabase.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -27,6 +28,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
   String? _localImagePath;
+  final _supabase = SupabaseClient(
+    'https://opboempdoytuyavetqko.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wYm9lbXBkb3l0dXlhdmV0cWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxOTg4MzQsImV4cCI6MjA1NTc3NDgzNH0.t9vGirqvJPKpY_XXidLbV3offN4mRi2FY1Zj2b5Gd1g',
+  );
 
   @override
   void initState() {
@@ -142,6 +147,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
       if (image != null) {
         await _saveImageLocally(File(image.path));
+        await _uploadImageToSupabase(File(image.path));
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -177,6 +183,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
           'name': _nameController.text,
           'email': _emailController.text,
           'bio': _bioController.text,
+          'profileImage': _supabase.storage
+              .from('avatars')
+              .getPublicUrl('user_avatars/$userId.jpg'),
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
         if (context.mounted) {
@@ -207,6 +216,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
         });
       }
     }
+  }
+
+  Future<void> _uploadImageToSupabase(File imageFile) async {
+    final userId = _auth.currentUser?.uid ?? '';
+    final filePath = 'user_avatars/$userId.jpg';
+
+    await _supabase.storage.from('avatars').upload(
+          filePath,
+          imageFile,
+          fileOptions: FileOptions(
+            contentType: 'image/jpeg',
+            upsert: true,
+          ),
+        );
+
+    final imageUrl = _supabase.storage.from('avatars').getPublicUrl(filePath);
+
+    await _firestore.collection('users').doc(userId).update({
+      'profileImage': imageUrl,
+    });
   }
 
   @override

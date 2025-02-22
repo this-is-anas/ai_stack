@@ -1,10 +1,7 @@
-import 'package:ai_hub/pages/services/ai_service.dart';
-import 'package:ai_hub/pages/services/gemini_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/gemini_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 
 class PromptGeneratorPage extends StatefulWidget {
   const PromptGeneratorPage({super.key});
@@ -14,39 +11,42 @@ class PromptGeneratorPage extends StatefulWidget {
 }
 
 class _PromptGeneratorPageState extends State<PromptGeneratorPage> {
-  final TextEditingController _ideaController = TextEditingController();
-  final int _maxChars = 500;
+  final TextEditingController _inputController = TextEditingController();
   bool _isGenerating = false;
-  final AIService _aiService = AIService();
   final GeminiService _geminiService = GeminiService();
-  String _generatedPrompt = '';
-  final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
   @override
   void dispose() {
-    _ideaController.dispose();
+    _inputController.dispose();
     super.dispose();
   }
 
   Future<void> _generatePrompt() async {
-    if (_ideaController.text.isEmpty) return;
+    if (_inputController.text.isEmpty) return;
 
     setState(() => _isGenerating = true);
 
     try {
-      final callable = _functions.httpsCallable('generatePrompt');
-      final response = await callable.call(
-        <String, dynamic>{'prompt': _ideaController.text},
+      final prompt = await _geminiService.generateTailoredPrompt(
+        _inputController.text,
       );
-      final generatedPrompt = response.data['prompt'] as String;
 
-      setState(() => _generatedPrompt = generatedPrompt);
+      if (prompt != null && mounted) {
+        _showResultDialog(prompt);
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Generation failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
-      setState(() => _isGenerating = false);
+      if (mounted) {
+        setState(() => _isGenerating = false);
+      }
     }
   }
 
@@ -172,9 +172,9 @@ class _PromptGeneratorPageState extends State<PromptGeneratorPage> {
                 )),
             const SizedBox(height: 12),
             TextField(
-              controller: _ideaController,
+              controller: _inputController,
               maxLines: 5,
-              maxLength: _maxChars,
+              maxLength: 500,
               decoration: InputDecoration(
                 hintText:
                     'e.g. "A futuristic city where AI controls weather..."',
@@ -190,7 +190,7 @@ class _PromptGeneratorPageState extends State<PromptGeneratorPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              '${_ideaController.text.length}/$_maxChars',
+              '${_inputController.text.length}/500',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurface.withOpacity(0.6),
               ),

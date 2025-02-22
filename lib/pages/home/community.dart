@@ -19,6 +19,8 @@ class _CommunityState extends State<Community> {
   final User? _currentUser = FirebaseAuth.instance.currentUser;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  bool _imageErrorOccurred = false;
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -160,7 +162,8 @@ class _CommunityState extends State<Community> {
         content: content,
         userId: userId,
         userName: userData['name'] ?? _currentUser?.displayName ?? 'Anonymous',
-        userImagePath: userData['profileImage'] ?? 'default_avatar.png',
+        userImagePath: userData['profileImage'] ??
+            'https://opboempdoytuyavetqko.supabase.co/storage/v1/object/public/avatars/default_avatar.png',
       );
     }).catchError((error) {
       print('Error creating post: $error');
@@ -188,10 +191,16 @@ class _CommunityState extends State<Community> {
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    backgroundImage: _currentUser?.photoURL != null
-                        ? NetworkImage(_currentUser!.photoURL!)
-                        : null,
-                    child: _currentUser?.photoURL == null
+                    backgroundImage: NetworkImage(_imageErrorOccurred
+                        ? 'https://opboempdoytuyavetqko.supabase.co/storage/v1/object/public/avatars/default_avatar.png'
+                        : (_currentUser?.photoURL ??
+                            'https://opboempdoytuyavetqko.supabase.co/storage/v1/object/public/avatars/default_avatar.png')),
+                    onBackgroundImageError: (exception, stackTrace) {
+                      setState(() {
+                        _imageErrorOccurred = true;
+                      });
+                    },
+                    child: _imageErrorOccurred || _currentUser?.photoURL == null
                         ? Icon(Icons.person)
                         : null,
                   ),

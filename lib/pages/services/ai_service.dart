@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class AIService {
   static const String _apiKey =
-      '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'; // Your OpenRouter key
+      'YOUR-API-KEY'; // Your OpenRouter key
   static const String _apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
   static const String _model = 'deepssek-r1:free'; // Official R1 model ID
 
